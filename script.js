@@ -1,4 +1,4 @@
-// Enhanced Past Events Blog with Clean Carousel Functionality
+// Enhanced Past Events Blog with Responsive Carousel Functionality
 
 // Presentation data
 const presentations = {
@@ -59,7 +59,6 @@ const presentations = {
     ],
     audio: "hitler/hitler.mp3",
   },
-
   bicycle: {
     title: "The Invention of the Bicycle",
     slides: [
@@ -71,7 +70,6 @@ const presentations = {
     ],
     audio: "lost-bicycle/bicycle.mp3",
   },
-
   towers: {
     title: "The Twin Towers: A Symbol of Resilience",
     slides: [
@@ -86,7 +84,6 @@ const presentations = {
     ],
     audio: "twin-towers/towers.ogg",
   },
-
   ancient: {
     title: "Ancient Civilizations: A Journey Through Time",
     slides: [
@@ -102,7 +99,6 @@ const presentations = {
     ],
     audio: "wonder_ancient/wonder.mp3",
   },
-
   "korean-war": {
     title: "The Korean War: A Divided Nation",
     slides: [
@@ -116,23 +112,16 @@ const presentations = {
     ],
     audio: "korean_war/korean.mp3",
   },
-
-  "vikings": {
+  vikings: {
     title: "The Vikings: Raiders and Explorers",
-    slides: [
-      "vikings/1.png",
-      "vikings/2.png",
-      "vikings/3.png",
-      "vikings/4.png",
-      "vikings/5.png",
-    ],
+    slides: ["vikings/1.png", "vikings/2.png", "vikings/3.png", "vikings/4.png", "vikings/5.png"],
     audio: "vikings/vikings.mp3",
   },
 }
 
 // Enhanced blog data
 const blogs = {
-  "cold": {
+  cold: {
     title: "The Cold War: A Geopolitical Struggle",
     content: `
             <h1>The Cold War: A Geopolitical Struggle</h1>
@@ -144,7 +133,7 @@ const blogs = {
             <p><em>Audio content is embedded within the blog for an immersive experience.</em></p>
         `,
   },
-  
+
   "camp-concentration": {
     title: "Concentration Camps: A Grim Legacy",
     content: `
@@ -171,8 +160,7 @@ const blogs = {
         `,
   },
 
-  "ayapel":{
-
+  ayapel: {
     title: "The Ayapel Flood: A Natural Disaster",
     content: `
             <h1>The Ayapel Flood: A Natural Disaster</h1>
@@ -198,7 +186,7 @@ const blogs = {
         `,
   },
 
-  "old-defense":{
+  "old-defense": {
     title: "The Old Defense: A Historical Perspective",
     content: `
             <h1>The Old Defense: A Historical Perspective</h1>
@@ -209,8 +197,7 @@ const blogs = {
         
             <p><em>Audio content is embedded to enhance the narrative.</em></p>
         `,
-
-  },  
+  },
 
   "berlin-wall": {
     title: "The Berlin Wall: A Symbol of Division",
@@ -225,7 +212,7 @@ const blogs = {
         `,
   },
 
-  "titanic": {
+  titanic: {
     title: "The Titanic: A Tragic Maritime Disaster",
     content: `
             <h1>The Titanic: A Tragic Maritime Disaster</h1>
@@ -237,10 +224,9 @@ const blogs = {
             <p><em>Audio content is embedded to enhance the storytelling experience.</em></p>
         `,
   },
-  
 }
 
-// Clean Carousel state
+// Responsive Carousel state management
 const carouselStates = {
   "presentations-carousel": {
     currentIndex: 0,
@@ -260,7 +246,38 @@ const carouselStates = {
 let currentPresentation = null
 let currentPresentationSlideIndex = 0
 
-// Initialize clean carousels
+// Responsive breakpoints
+const BREAKPOINTS = {
+  mobile: 480,
+  tablet: 768,
+  desktop: 992,
+  large: 1200,
+}
+
+// Get current screen size category
+function getScreenSize() {
+  const width = window.innerWidth
+  if (width <= BREAKPOINTS.mobile) return "mobile"
+  if (width <= BREAKPOINTS.tablet) return "tablet"
+  if (width <= BREAKPOINTS.desktop) return "desktop"
+  return "large"
+}
+
+// Get items per view based on screen size
+function getItemsPerView(screenSize) {
+  switch (screenSize) {
+    case "mobile":
+      return 1
+    case "tablet":
+      return 2
+    case "desktop":
+      return 3
+    default:
+      return 3
+  }
+}
+
+// Initialize responsive carousels
 function initializeCarousels() {
   const carousels = document.querySelectorAll(".carousel-wrapper")
 
@@ -271,6 +288,7 @@ function initializeCarousels() {
 
     if (state) {
       state.totalItems = items.length
+      adjustCarouselForScreenSize()
       updateCarouselView(carouselId)
       createCarouselIndicators(carouselId)
     }
@@ -301,7 +319,21 @@ function updateCarouselView(carouselId) {
 
   if (!carousel || !state) return
 
-  const itemWidth = 400 // 380px + 20px gap
+  // Calculate item width based on screen size
+  const screenSize = getScreenSize()
+  let itemWidth
+
+  switch (screenSize) {
+    case "mobile":
+      itemWidth = Math.min(300, window.innerWidth - 60) // Account for padding
+      break
+    case "tablet":
+      itemWidth = 340
+      break
+    default:
+      itemWidth = 400
+  }
+
   const translateX = -state.currentIndex * itemWidth
 
   carousel.style.transform = `translateX(${translateX}px)`
@@ -327,7 +359,7 @@ function nextCarouselSlide(carouselId) {
 
     setTimeout(() => {
       state.isTransitioning = false
-    }, 500)
+    }, 600)
   }
 }
 
@@ -343,7 +375,7 @@ function prevCarouselSlide(carouselId) {
 
     setTimeout(() => {
       state.isTransitioning = false
-    }, 500)
+    }, 600)
   }
 }
 
@@ -361,7 +393,7 @@ function goToCarouselSlide(carouselId, targetIndex) {
 
     setTimeout(() => {
       state.isTransitioning = false
-    }, 500)
+    }, 600)
   }
 }
 
@@ -429,35 +461,46 @@ function initializeCarouselTouchSupport() {
     let endX = 0
     let isDragging = false
 
-    carousel.addEventListener("touchstart", (e) => {
-      startX = e.touches[0].clientX
-      isDragging = true
-    })
+    // Touch events
+    carousel.addEventListener(
+      "touchstart",
+      (e) => {
+        startX = e.touches[0].clientX
+        isDragging = true
+      },
+      { passive: true },
+    )
 
-    carousel.addEventListener("touchmove", (e) => {
-      if (!isDragging) return
-      endX = e.touches[0].clientX
-    })
+    carousel.addEventListener(
+      "touchmove",
+      (e) => {
+        if (!isDragging) return
+        endX = e.touches[0].clientX
+      },
+      { passive: true },
+    )
 
-    carousel.addEventListener("touchend", () => {
-      if (!isDragging) return
-      isDragging = false
+    carousel.addEventListener(
+      "touchend",
+      () => {
+        if (!isDragging) return
+        isDragging = false
 
-      const swipeThreshold = 50
-      const diff = startX - endX
+        const swipeThreshold = 50
+        const diff = startX - endX
 
-      if (Math.abs(diff) > swipeThreshold) {
-        if (diff > 0) {
-          // Swipe left - next slide
-          nextCarouselSlide(carousel.id)
-        } else {
-          // Swipe right - previous slide
-          prevCarouselSlide(carousel.id)
+        if (Math.abs(diff) > swipeThreshold) {
+          if (diff > 0) {
+            nextCarouselSlide(carousel.id)
+          } else {
+            prevCarouselSlide(carousel.id)
+          }
         }
-      }
-    })
+      },
+      { passive: true },
+    )
 
-    // Mouse drag support
+    // Mouse drag support for desktop
     let mouseStartX = 0
     let mouseEndX = 0
     let isMouseDragging = false
@@ -466,6 +509,7 @@ function initializeCarouselTouchSupport() {
       mouseStartX = e.clientX
       isMouseDragging = true
       carousel.style.cursor = "grabbing"
+      e.preventDefault()
     })
 
     carousel.addEventListener("mousemove", (e) => {
@@ -483,10 +527,8 @@ function initializeCarouselTouchSupport() {
 
       if (Math.abs(diff) > swipeThreshold) {
         if (diff > 0) {
-          // Drag left - next slide
           nextCarouselSlide(carousel.id)
         } else {
-          // Drag right - previous slide
           prevCarouselSlide(carousel.id)
         }
       }
@@ -502,11 +544,63 @@ function initializeCarouselTouchSupport() {
   })
 }
 
-// Enhanced smooth scrolling
+// Mobile navigation toggle
+function initializeMobileNavigation() {
+  const header = document.querySelector(".header")
+
+  // Create mobile menu toggle button
+  const mobileToggle = document.createElement("button")
+  mobileToggle.className = "mobile-menu-toggle"
+  mobileToggle.innerHTML = '<i class="fas fa-bars"></i>'
+  mobileToggle.setAttribute("aria-label", "Toggle mobile menu")
+
+  // Create mobile navigation
+  const mobileNav = document.createElement("div")
+  mobileNav.className = "mobile-nav"
+
+  // Clone existing navigation
+  const existingNav = document.querySelector(".nav")
+  if (existingNav) {
+    mobileNav.appendChild(existingNav.cloneNode(true))
+  }
+
+  // Insert mobile elements
+  const container = header.querySelector(".container")
+  if (container) {
+    container.appendChild(mobileToggle)
+    header.appendChild(mobileNav)
+  }
+
+  // Toggle functionality
+  mobileToggle.addEventListener("click", () => {
+    const isOpen = mobileNav.style.display === "block"
+    mobileNav.style.display = isOpen ? "none" : "block"
+    mobileToggle.innerHTML = isOpen ? '<i class="fas fa-bars"></i>' : '<i class="fas fa-times"></i>'
+  })
+
+  // Close mobile menu when clicking on links
+  mobileNav.addEventListener("click", (e) => {
+    if (e.target.classList.contains("nav-link")) {
+      mobileNav.style.display = "none"
+      mobileToggle.innerHTML = '<i class="fas fa-bars"></i>'
+    }
+  })
+
+  // Close mobile menu when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!header.contains(e.target) && mobileNav.style.display === "block") {
+      mobileNav.style.display = "none"
+      mobileToggle.innerHTML = '<i class="fas fa-bars"></i>'
+    }
+  })
+}
+
+// Enhanced smooth scrolling with mobile considerations
 function scrollToSection(sectionId) {
   const element = document.getElementById(sectionId)
-  const headerHeight = document.querySelector(".header").offsetHeight
-  const offsetTop = element.offsetTop - headerHeight
+  const header = document.querySelector(".header")
+  const headerHeight = header ? header.offsetHeight : 70
+  const offsetTop = element.offsetTop - headerHeight - 20 // Extra padding for mobile
 
   window.scrollTo({
     top: offsetTop,
@@ -514,13 +608,23 @@ function scrollToSection(sectionId) {
   })
 
   // Add visual feedback
-  element.style.transform = "scale(1.02)"
+  element.style.transform = "scale(1.01)"
   setTimeout(() => {
     element.style.transform = "scale(1)"
   }, 300)
+
+  // Close mobile menu if open
+  const mobileNav = document.querySelector(".mobile-nav")
+  const mobileToggle = document.querySelector(".mobile-menu-toggle")
+  if (mobileNav && mobileNav.style.display === "block") {
+    mobileNav.style.display = "none"
+    if (mobileToggle) {
+      mobileToggle.innerHTML = '<i class="fas fa-bars"></i>'
+    }
+  }
 }
 
-// Presentation functionality
+// Presentation functionality with responsive considerations
 function openPresentation(presentationId) {
   currentPresentation = presentations[presentationId]
   currentPresentationSlideIndex = 0
@@ -561,6 +665,10 @@ function openPresentation(presentationId) {
   modal.style.display = "block"
   document.body.style.overflow = "hidden"
 
+  // Prevent body scroll on mobile
+  document.body.style.position = "fixed"
+  document.body.style.width = "100%"
+
   console.log(`🎬 Opening presentation: ${currentPresentation.title}`)
 }
 
@@ -579,7 +687,7 @@ function updatePresentationNavigationButtons(modal, presentationId) {
   }
 }
 
-// Enhanced blog opening with separate modals
+// Enhanced blog opening with responsive considerations
 function openBlog(blogId) {
   const blog = blogs[blogId]
   const modalId = `blog-modal-${blogId}`
@@ -590,7 +698,6 @@ function openBlog(blogId) {
     return
   }
 
-  // Get the correct content container using the ID
   const contentId = `blog-content-${blogId}`
   const content = document.getElementById(contentId)
 
@@ -604,6 +711,10 @@ function openBlog(blogId) {
   // Show modal with animation
   modal.style.display = "block"
   document.body.style.overflow = "hidden"
+
+  // Prevent body scroll on mobile
+  document.body.style.position = "fixed"
+  document.body.style.width = "100%"
 
   // Animate content appearance
   setTimeout(() => {
@@ -622,7 +733,7 @@ function openBlog(blogId) {
   console.log(`📖 Opening blog: ${blog.title}`)
 }
 
-// Enhanced modal closing for separate modals
+// Enhanced modal closing with mobile considerations
 function closeModal(modalId) {
   const modal = document.getElementById(modalId)
 
@@ -646,7 +757,10 @@ function closeModal(modalId) {
     }
   }, 300)
 
+  // Restore body scroll
   document.body.style.overflow = "auto"
+  document.body.style.position = ""
+  document.body.style.width = ""
 
   // Stop audio for this modal
   const audio = modal.querySelector("audio")
@@ -709,7 +823,7 @@ function updateSlideWithAnimation(presentationId) {
   }, 200)
 }
 
-// Contact form functionality
+// Enhanced contact form functionality
 function initializeContactForm() {
   const contactForm = document.getElementById("contactForm")
 
@@ -724,9 +838,24 @@ function initializeContactForm() {
       const subject = formData.get("subject")
       const message = formData.get("message")
 
-      // Simple validation
-      if (!name || !email || !subject || !message) {
-        alert("Please fill in all fields")
+      // Enhanced validation
+      const nameRegex = /^[A-Za-z\s]+$/
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/
+
+      if (!nameRegex.test(name)) {
+        showAlert("El nombre debe contener solo letras.")
+        return
+      }
+      if (!emailRegex.test(email)) {
+        showAlert("Por favor ingresa una dirección de Gmail válida.")
+        return
+      }
+      if (!subject.trim()) {
+        showAlert("El asunto no puede estar vacío.")
+        return
+      }
+      if (!message.trim()) {
+        showAlert("El mensaje no puede estar vacío.")
         return
       }
 
@@ -734,11 +863,12 @@ function initializeContactForm() {
       const submitBtn = contactForm.querySelector(".submit-btn")
       const originalText = submitBtn.innerHTML
 
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...'
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...'
       submitBtn.disabled = true
 
+      // Simulate API call
       setTimeout(() => {
-        alert("Thank you for your message! We will get back to you soon.")
+        showAlert("¡Gracias por tu mensaje! Te responderemos pronto.")
         contactForm.reset()
         submitBtn.innerHTML = originalText
         submitBtn.disabled = false
@@ -749,7 +879,50 @@ function initializeContactForm() {
   }
 }
 
-// Enhanced keyboard navigation
+// Enhanced alert function for better mobile experience
+function showAlert(message) {
+  // Create custom alert for better mobile experience
+  const alertDiv = document.createElement("div")
+  alertDiv.className = "custom-alert"
+  alertDiv.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 3000;
+    max-width: 90vw;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+  `
+
+  alertDiv.innerHTML = `
+    <p style="margin: 0 0 1rem 0; color: #2c3e50; font-size: 1.1rem;">${message}</p>
+    <button onclick="this.parentElement.remove()" style="
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+    ">OK</button>
+  `
+
+  document.body.appendChild(alertDiv)
+
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (alertDiv.parentElement) {
+      alertDiv.remove()
+    }
+  }, 5000)
+}
+
+// Enhanced keyboard navigation with mobile considerations
 document.addEventListener("keydown", (e) => {
   const openModal = document.querySelector('.modal[style*="block"]')
   if (openModal && openModal.id.includes("presentation-modal")) {
@@ -766,10 +939,9 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // Carousel navigation with keyboard
-  if (!openModal) {
+  // Carousel navigation with keyboard (desktop only)
+  if (!openModal && window.innerWidth > BREAKPOINTS.tablet) {
     if (e.key === "ArrowLeft") {
-      // Focus on presentations carousel by default
       prevCarouselSlide("presentations-carousel")
     } else if (e.key === "ArrowRight") {
       nextCarouselSlide("presentations-carousel")
@@ -787,42 +959,71 @@ window.addEventListener("click", (e) => {
   })
 })
 
-// Enhanced header scroll effect
-window.addEventListener("scroll", () => {
+// Enhanced header scroll effect with mobile considerations
+let lastScrollY = 0
+let ticking = false
+
+function updateHeader() {
   const header = document.querySelector(".header")
   const scrolled = window.scrollY
 
   if (header) {
     if (scrolled > 100) {
-      header.style.background = "rgba(255, 255, 255, 0.95)"
+      header.style.background = "rgba(255, 255, 255, 0.98)"
       header.style.backdropFilter = "blur(20px)"
-      header.style.transform = "translateY(0)"
+      header.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.15)"
     } else {
       header.style.background = "rgba(255, 255, 255, 0.95)"
       header.style.backdropFilter = "blur(10px)"
+      header.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.1)"
+    }
+
+    // Hide header on scroll down, show on scroll up (mobile only)
+    if (window.innerWidth <= BREAKPOINTS.tablet) {
+      if (scrolled > lastScrollY && scrolled > 100) {
+        header.style.transform = "translateY(-100%)"
+      } else {
+        header.style.transform = "translateY(0)"
+      }
     }
   }
-})
+
+  lastScrollY = scrolled
+  ticking = false
+}
+
+window.addEventListener(
+  "scroll",
+  () => {
+    if (!ticking) {
+      requestAnimationFrame(updateHeader)
+      ticking = true
+    }
+  },
+  { passive: true },
+)
 
 // Responsive carousel adjustments
 function adjustCarouselForScreenSize() {
-  const screenWidth = window.innerWidth
+  const screenSize = getScreenSize()
+  const itemsPerView = getItemsPerView(screenSize)
 
   Object.keys(carouselStates).forEach((carouselId) => {
     const state = carouselStates[carouselId]
+    const oldItemsPerView = state.itemsPerView
 
-    if (screenWidth <= 480) {
-      state.itemsPerView = 1
-    } else if (screenWidth <= 768) {
-      state.itemsPerView = 2
-    } else {
-      state.itemsPerView = 3
+    state.itemsPerView = itemsPerView
+
+    // Reset to valid position if items per view changed
+    if (oldItemsPerView !== itemsPerView) {
+      const maxIndex = Math.max(0, state.totalItems - state.itemsPerView)
+      if (state.currentIndex > maxIndex) {
+        state.currentIndex = maxIndex
+      }
+
+      updateCarouselView(carouselId)
+      createCarouselIndicators(carouselId)
     }
-
-    // Reset to first slide and update view
-    state.currentIndex = 0
-    updateCarouselView(carouselId)
-    createCarouselIndicators(carouselId)
   })
 }
 
@@ -837,39 +1038,87 @@ const observer = new IntersectionObserver((entries) => {
     if (entry.isIntersecting) {
       entry.target.classList.add("animate-in")
 
-      // Special animation for cards
+      // Special animation for cards with staggered delay
       if (entry.target.classList.contains("presentation-card") || entry.target.classList.contains("blog-card")) {
-        entry.target.style.animationDelay = `${Math.random() * 0.5}s`
+        const cards = Array.from(entry.target.parentElement.children)
+        const index = cards.indexOf(entry.target)
+        entry.target.style.animationDelay = `${index * 0.1}s`
       }
     }
   })
 }, observerOptions)
 
+// Debounced resize handler
+let resizeTimeout
+function handleResize() {
+  clearTimeout(resizeTimeout)
+  resizeTimeout = setTimeout(() => {
+    adjustCarouselForScreenSize()
+
+    // Close mobile menu on resize to desktop
+    if (window.innerWidth > BREAKPOINTS.tablet) {
+      const mobileNav = document.querySelector(".mobile-nav")
+      const mobileToggle = document.querySelector(".mobile-menu-toggle")
+      if (mobileNav && mobileNav.style.display === "block") {
+        mobileNav.style.display = "none"
+        if (mobileToggle) {
+          mobileToggle.innerHTML = '<i class="fas fa-bars"></i>'
+        }
+      }
+    }
+  }, 250)
+}
+
+// Performance optimized event listeners
+function addPerformantEventListeners() {
+  // Throttled scroll events
+  let scrollTimeout
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!scrollTimeout) {
+        scrollTimeout = setTimeout(() => {
+          scrollTimeout = null
+        }, 16) // ~60fps
+      }
+    },
+    { passive: true },
+  )
+
+  // Debounced resize events
+  window.addEventListener("resize", handleResize, { passive: true })
+
+  // Optimized touch events
+  document.addEventListener("touchstart", () => {}, { passive: true })
+  document.addEventListener("touchmove", () => {}, { passive: true })
+}
+
 // Initialize everything when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🚀 Enhanced Past Events blog with clean carousels initialized!")
+  console.log("🚀 Enhanced responsive Past Events blog initialized!")
 
-  // Initialize carousel functionality
+  // Initialize core functionality
   initializeCarousels()
-
-  // Initialize contact form
   initializeContactForm()
+  initializeMobileNavigation()
+  addPerformantEventListeners()
 
   // Adjust carousel for initial screen size
   adjustCarouselForScreenSize()
 
   // Observe elements for animation
   const animatedElements = document.querySelectorAll(".section, .presentation-card, .blog-card, .hero-content")
-
   animatedElements.forEach((el) => {
     observer.observe(el)
   })
 
   // Add click animations to interactive elements
   const clickableElements = document.querySelectorAll("button, .presentation-card, .blog-card, .nav-link")
-
   clickableElements.forEach((element) => {
     element.addEventListener("click", function (e) {
+      // Skip ripple on touch devices for better performance
+      if ("ontouchstart" in window) return
+
       // Create ripple effect
       const ripple = document.createElement("div")
       const rect = this.getBoundingClientRect()
@@ -878,17 +1127,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const y = e.clientY - rect.top - size / 2
 
       ripple.style.cssText = `
-                position: absolute;
-                border-radius: 50%;
-                background: rgba(52, 152, 219, 0.3);
-                transform: scale(0);
-                animation: rippleEffect 0.6s linear;
-                left: ${x}px;
-                top: ${y}px;
-                width: ${size}px;
-                height: ${size}px;
-                pointer-events: none;
-            `
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(52, 152, 219, 0.3);
+        transform: scale(0);
+        animation: rippleEffect 0.6s linear;
+        left: ${x}px;
+        top: ${y}px;
+        width: ${size}px;
+        height: ${size}px;
+        pointer-events: none;
+      `
 
       this.style.position = "relative"
       this.style.overflow = "hidden"
@@ -902,14 +1151,10 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   })
 
-  console.log("✨ All animations and interactions ready!")
+  console.log("✨ All responsive animations and interactions ready!")
   console.log("🎮 Available presentations:", Object.keys(presentations))
   console.log("📚 Available blogs:", Object.keys(blogs))
-})
-
-// Handle window resize
-window.addEventListener("resize", () => {
-  adjustCarouselForScreenSize()
+  console.log("📱 Current screen size:", getScreenSize())
 })
 
 // Add CSS for ripple animation if not already present
@@ -917,15 +1162,36 @@ if (!document.querySelector("#ripple-styles")) {
   const rippleStyles = document.createElement("style")
   rippleStyles.id = "ripple-styles"
   rippleStyles.textContent = `
-        @keyframes rippleEffect {
-            to {
-                transform: scale(2);
-                opacity: 0;
-            }
+    @keyframes rippleEffect {
+      to {
+        transform: scale(2);
+        opacity: 0;
+      }
+    }
+    
+    .custom-alert {
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @media (max-width: 768px) {
+      @keyframes rippleEffect {
+        to {
+          transform: scale(1.5);
+          opacity: 0;
         }
-    `
+      }
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+      @keyframes rippleEffect {
+        to {
+          transform: scale(1);
+          opacity: 0;
+        }
+      }
+    }
+  `
   document.head.appendChild(rippleStyles)
 }
 
-console.log("🎉 Enhanced Past Events blog loaded with clean carousel functionality!")
-
+console.log("🎉 Enhanced responsive Past Events blog loaded successfully!")
